@@ -1,10 +1,5 @@
-"""
-╔══════════════════════════════════════════════════╗
-║      NEON VOID - Cyberpunk Arcade Shooter v3.0  ║
-║      Power-ups · Bosses · Wave System            ║
-╚══════════════════════════════════════════════════╝
-pip install pygame noise
-python game.py
+""" 
+    BATTLE FORGE - Cyberpunk Arcade Shooter v3.0  
 """
 import pygame, sys, math, random, json, os, time
 
@@ -93,30 +88,127 @@ def perlin(x,octaves=4,persistence=0.5,lacunarity=2.0,scale=0.01):
 
 # ── Sprite Factory ────────────────────────────────────────────────────────────
 def make_player_sprite(color,facing=1,frame=0):
-    s=pygame.Surface((32,48),pygame.SRCALPHA)
-    c=color; dim=tuple(max(0,x-60) for x in c[:3]); hi=tuple(min(255,x+80) for x in c[:3])
-    dark=tuple(max(0,x-120) for x in c[:3])
-    leg_bob=int(math.sin(frame*0.8)*4)
-    pygame.draw.rect(s,dark,(4,38+leg_bob,9,10),border_radius=2)
-    pygame.draw.rect(s,dark,(19,38-leg_bob,9,10),border_radius=2)
-    pygame.draw.rect(s,c,(4,38+leg_bob,9,3),border_radius=1)
-    pygame.draw.rect(s,c,(19,38-leg_bob,9,3),border_radius=1)
-    pygame.draw.rect(s,dim,(5,28,8,12)); pygame.draw.rect(s,dim,(19,28,8,12))
-    pygame.draw.rect(s,dim,(4,14,24,16),border_radius=3)
-    pygame.draw.rect(s,c,(4,14,24,16),2,border_radius=3)
-    pygame.draw.rect(s,hi,(10,16,12,3))
-    pygame.draw.rect(s,c,(1,14,5,8),border_radius=2); pygame.draw.rect(s,c,(26,14,5,8),border_radius=2)
-    pygame.draw.rect(s,dim,(7,2,18,14),border_radius=4); pygame.draw.rect(s,c,(7,2,18,14),2,border_radius=4)
+    """Detailed 40x56 cyberpunk soldier with helmet, jetpack, armour plates."""
+    s=pygame.Surface((40,56),pygame.SRCALPHA)
+    c=color
+    dim=tuple(max(0,x-70) for x in c[:3])
+    dark=tuple(max(0,x-130) for x in c[:3])
+    hi=tuple(min(255,x+90) for x in c[:3])
+    gold=C["yellow"]; red=C["red"]
+    leg_bob=int(math.sin(frame*0.7)*5)
+
+    # ── Boots ──
+    pygame.draw.rect(s,dark,(5,46+leg_bob,10,10),border_radius=3)
+    pygame.draw.rect(s,dark,(22,46-leg_bob,10,10),border_radius=3)
+    # Boot toe plates
+    pygame.draw.rect(s,c,(4,52+leg_bob,12,4),border_radius=2)
+    pygame.draw.rect(s,c,(21,52-leg_bob,12,4),border_radius=2)
+    # Boot trim lines
+    pygame.draw.line(s,hi,(5,48+leg_bob),(14,48+leg_bob),1)
+    pygame.draw.line(s,hi,(22,48-leg_bob),(31,48-leg_bob),1)
+
+    # ── Legs with knee pads ──
+    pygame.draw.rect(s,dim,(6,32+leg_bob,9,16))
+    pygame.draw.rect(s,dim,(23,32-leg_bob,9,16))
+    # Knee pads
+    pygame.draw.rect(s,c,(5,36+leg_bob,11,7),border_radius=2)
+    pygame.draw.rect(s,c,(22,36-leg_bob,11,7),border_radius=2)
+    pygame.draw.rect(s,hi,(6,37+leg_bob,9,2))
+    pygame.draw.rect(s,hi,(23,37-leg_bob,9,2))
+
+    # ── Jetpack on back ──
+    jp_x=2 if facing>=0 else 26
+    pygame.draw.rect(s,dark,(jp_x,16,8,18),border_radius=3)
+    pygame.draw.rect(s,dim,(jp_x,16,8,18),2,border_radius=3)
+    # Jetpack exhaust
+    exhaust=int(abs(math.sin(frame*0.5))*6)
+    pygame.draw.rect(s,(255,100,0,180),(jp_x+1,34,3,exhaust),border_radius=1)
+    pygame.draw.rect(s,(255,200,0,120),(jp_x+2,34,1,exhaust+2),border_radius=1)
+    # Jetpack vents
+    for vy in [19,24,29]:
+        pygame.draw.rect(s,c,(jp_x+1,vy,6,2))
+
+    # ── Body armour ──
+    pygame.draw.rect(s,dim,(11,18,18,18),border_radius=4)
+    pygame.draw.rect(s,c,(11,18,18,18),2,border_radius=4)
+    # Chest armour plates
+    pygame.draw.rect(s,dark,(13,20,7,8),border_radius=2)
+    pygame.draw.rect(s,dark,(20,20,7,8),border_radius=2)
+    pygame.draw.rect(s,dim,(13,20,7,8),1,border_radius=2)
+    pygame.draw.rect(s,dim,(20,20,7,8),1,border_radius=2)
+    # Chest light / core
+    core_pulse=int(abs(math.sin(frame*0.12))*60)+160
+    pygame.draw.rect(s,(0,core_pulse,core_pulse),(15,22,10,4),border_radius=2)
+    # Waist belt
+    pygame.draw.rect(s,dark,(11,33,18,4))
+    pygame.draw.rect(s,gold,(11,33,18,2))
+    # Belt buckle
+    pygame.draw.rect(s,gold,(18,33,4,4),border_radius=1)
+
+    # ── Shoulder pauldrons ──
+    pygame.draw.rect(s,dim,(7,17,6,10),border_radius=3)
+    pygame.draw.rect(s,c,(7,17,6,10),2,border_radius=3)
+    pygame.draw.rect(s,dim,(27,17,6,10),border_radius=3)
+    pygame.draw.rect(s,c,(27,17,6,10),2,border_radius=3)
+    # Shoulder rivets
+    pygame.draw.circle(s,hi,(10,21),2)
+    pygame.draw.circle(s,hi,(30,21),2)
+
+    # ── Helmet ──
+    pygame.draw.rect(s,dim,(9,3,22,16),border_radius=6)
+    pygame.draw.rect(s,c,(9,3,22,16),2,border_radius=6)
+    # Helmet ridge
+    pygame.draw.rect(s,hi,(18,3,4,3),border_radius=1)
+    # Antenna
+    pygame.draw.line(s,c,(20,3),(20,-4),2)
+    pygame.draw.circle(s,C["cyan"],(20,-4),3)
+    pulse_ant=int(abs(math.sin(frame*0.15))*150)+100
+    draw_glow(s,C["cyan"],(20,-4),5,pulse_ant)
+    # Ear pieces
+    pygame.draw.rect(s,dark,(8,7,4,8),border_radius=2)
+    pygame.draw.rect(s,c,(8,7,4,8),1,border_radius=2)
+    pygame.draw.rect(s,dark,(28,7,4,8),border_radius=2)
+    pygame.draw.rect(s,c,(28,7,4,8),1,border_radius=2)
+    # Visor — wide glowing bar
     if facing>=0:
-        pygame.draw.rect(s,C["yellow"],(17,6,8,5),border_radius=2)
-        pygame.draw.rect(s,(255,255,180),(17,6,4,2))
-        pygame.draw.rect(s,dim,(27,18,6,5)); pygame.draw.rect(s,c,(27,18,6,5),1)
+        pygame.draw.rect(s,(0,40,60),(15,8,16,6),border_radius=2)
+        pygame.draw.rect(s,gold,(15,8,16,6),2,border_radius=2)
+        pygame.draw.rect(s,(255,255,180,180),(16,9,8,2))
+        # Scope on right
+        pygame.draw.rect(s,dark,(29,9,4,4),border_radius=1)
+        pygame.draw.circle(s,C["cyan"],(31,11),2)
     else:
-        pygame.draw.rect(s,C["yellow"],(7,6,8,5),border_radius=2)
-        pygame.draw.rect(s,(255,255,180),(7,6,4,2))
-        pygame.draw.rect(s,dim,(-1,18,6,5)); pygame.draw.rect(s,c,(-1,18,6,5),1)
-    pygame.draw.line(s,c,(15,2),(15,-3),1); pygame.draw.circle(s,C["cyan"],(15,0),2)
-    draw_glow(s,c,(16,24),18,40)
+        pygame.draw.rect(s,(0,40,60),(9,8,16,6),border_radius=2)
+        pygame.draw.rect(s,gold,(9,8,16,6),2,border_radius=2)
+        pygame.draw.rect(s,(255,255,180,180),(10,9,8,2))
+        pygame.draw.rect(s,dark,(7,9,4,4),border_radius=1)
+        pygame.draw.circle(s,C["cyan"],(9,11),2)
+
+    # ── Gun arm ──
+    if facing>=0:
+        # Forearm
+        pygame.draw.rect(s,dim,(28,22,8,6),border_radius=2)
+        pygame.draw.rect(s,c,(28,22,8,6),1,border_radius=2)
+        # Gun body
+        pygame.draw.rect(s,dark,(33,20,10,9),border_radius=3)
+        pygame.draw.rect(s,c,(33,20,10,9),2,border_radius=3)
+        # Barrel
+        pygame.draw.rect(s,c,(41,23,6,3))
+        # Muzzle
+        pygame.draw.circle(s,gold,(47,24),2)
+        # Energy cell
+        pygame.draw.rect(s,(0,200,255),(35,21,4,7),border_radius=1)
+    else:
+        pygame.draw.rect(s,dim,(4,22,8,6),border_radius=2)
+        pygame.draw.rect(s,c,(4,22,8,6),1,border_radius=2)
+        pygame.draw.rect(s,dark,(-3,20,10,9),border_radius=3)
+        pygame.draw.rect(s,c,(-3,20,10,9),2,border_radius=3)
+        pygame.draw.rect(s,c,(-9,23,6,3))
+        pygame.draw.circle(s,gold,(-7,24),2)
+        pygame.draw.rect(s,(0,200,255),(1,21,4,7),border_radius=1)
+
+    # ── Overall glow ──
+    draw_glow(s,c,(20,28),22,35)
     return s
 
 def make_bat_sprite(frame=0):
@@ -287,7 +379,7 @@ class Boss:
                 self.y=p.rect.top-self.H; self.vy=0
                 self.rect.y=int(self.y)
 
-        # Shoot — triple spread
+        # Shoot at triple spread
         if self.shoot_cd<=0:
             dx=px-self.x; dy=py-self.y; dist=max(1,math.hypot(dx,dy))
             bspd=5+self.difficulty*0.5
@@ -338,7 +430,7 @@ class Boss:
         draw_neon_rect(surf,C["red"],(bx,by,bw,bh),glow_r=6)
         neon_text(surf,fonts["small"],"BOSS",C["red"],(SCREEN_W//2,by-14))
 
-# ── Particles ─────────────────────────────────────────────────────────────────
+#Particles 
 class Particle:
     __slots__=("x","y","vx","vy","life","max_life","color","size","gravity","fade")
     def __init__(self,x,y,vx,vy,life,color,size=3,gravity=0,fade=True):
@@ -384,7 +476,7 @@ class DamageNumber:
         t=font.render(f"+{self.val}",True,self.color); t.set_alpha(alpha)
         surf.blit(t,(self.x-cx-t.get_width()//2,self.y-cy))
 
-# ── Camera ─────────────────────────────────────────────────────────────────────
+#Camera
 class Camera:
     def __init__(self): self.x=self.y=self._tx=self._ty=0.0; self.shake=0
     def target(self,px,py): self._tx=px-SCREEN_W*0.35; self._ty=py-SCREEN_H*0.55
@@ -397,7 +489,7 @@ class Camera:
         sy=random.randint(-self.shake,self.shake) if self.shake else 0
         return self.x+sx,self.y+sy
 
-# ── World ──────────────────────────────────────────────────────────────────────
+#World
 class Platform:
     __slots__=("rect","biome_idx")
     def __init__(self,x,y,w,h,bi=0): self.rect=pygame.Rect(x,y,w,h); self.biome_idx=bi
@@ -455,7 +547,7 @@ class World:
             pulse=0.5+0.5*math.sin(tick*0.05+p.rect.x*0.003)
             draw_glow(surf,acc,(rx+p.rect.w//2,ry+2),int(12*pulse)+4,30)
 
-# ── Bullet ─────────────────────────────────────────────────────────────────────
+#Bullet
 class Bullet:
     def __init__(self,x,y,vx,vy,color,owner="player",damage=1):
         self.x=float(x); self.y=float(y); self.vx=float(vx); self.vy=float(vy)
@@ -481,7 +573,7 @@ class Bullet:
             pygame.draw.circle(surf,self.color,(bx,by),4)
             draw_glow(surf,self.color,(bx,by),10,100)
 
-# ── Enemy ──────────────────────────────────────────────────────────────────────
+#Enemy
 class Enemy:
     def __init__(self,x,y,kind,difficulty=1.0):
         self.x=float(x); self.y=float(y); self.vx=self.vy=0.0
@@ -554,9 +646,9 @@ class Enemy:
             pygame.draw.rect(surf,(60,0,0),(sx,sy-10,self.w,5))
             pygame.draw.rect(surf,C["red"],(sx,sy-10,int(self.w*frac),5))
 
-# ── Player ─────────────────────────────────────────────────────────────────────
+#Player
 class Player:
-    W,H=32,48; JUMP_VEL=-13.5; MOVE_SPD=5.5; SHOOT_CD=10; INVINCIBLE=90; MAX_HP=10
+    W,H=40,56; JUMP_VEL=-13.5; MOVE_SPD=5.5; SHOOT_CD=10; INVINCIBLE=90; MAX_HP=10
     def __init__(self,x,y):
         self.x=float(x); self.y=float(y); self.vx=self.vy=0.0
         self.on_ground=False; self.jumps_left=2; self.hp=self.MAX_HP
@@ -681,7 +773,7 @@ class Player:
             lt=fonts["small"].render(label,True,col); lt.set_alpha(220)
             surf.blit(lt,(x+4,y+1)); x+=bw+12
 
-# ── Spawner ────────────────────────────────────────────────────────────────────
+#Spawner
 class Spawner:
     def __init__(self): self.timer=0; self.interval=180; self.boss_timer=0
     def update(self,enemies,bosses,powerups,px,py,world,cam_x,difficulty,platforms):
@@ -707,7 +799,7 @@ class Spawner:
             ey=py-random.randint(50,200)
             powerups.append(PowerUp(ex,ey))
 
-# ── Score helpers ──────────────────────────────────────────────────────────────
+#Score helpers
 def load_scores():
     if os.path.exists(SCORES_FILE):
         try:
@@ -728,7 +820,7 @@ def add_score(scores,username,score):
     scores.append({"username":username,"score":score,"time":int(time.time())})
     return save_scores(scores)
 
-# ── UI Helpers ─────────────────────────────────────────────────────────────────
+#UI Helpers
 class NeonButton:
     def __init__(self,x,y,w,h,text,color=None):
         self.rect=pygame.Rect(x-w//2,y-h//2,w,h)
@@ -764,7 +856,7 @@ class InputBox:
             cx2=self.rect.x+10+t.get_width()+2
             pygame.draw.line(surf,col,(cx2,self.rect.centery-12),(cx2,self.rect.centery+12),2)
 
-# ── Background helpers ─────────────────────────────────────────────────────────
+#Background helpers
 def _draw_scanlines(surf):
     sl=pygame.Surface((SCREEN_W,SCREEN_H),pygame.SRCALPHA)
     for y in range(0,SCREEN_H,4): pygame.draw.line(sl,(0,0,0,25),(0,y),(SCREEN_W,y))
@@ -811,7 +903,7 @@ def _draw_city_bg(surf,tick):
     sc=pygame.Surface((SCREEN_W,3),pygame.SRCALPHA); sc.fill((*C["cyan"],35))
     surf.blit(sc,(0,scan_y))
 
-# ── Intro ──────────────────────────────────────────────────────────────────────
+#Intro
 class IntroSequence:
     DURATION=FPS*6
     def __init__(self,fonts):
@@ -862,7 +954,7 @@ class IntroSequence:
                     surf.blit(ls,(0,0),special_flags=pygame.BLEND_RGBA_ADD)
         if t>0.2:
             alpha_t=int(clamp((t-0.2)*5,0,1)*255)
-            ts=self.fonts["big"].render("NEON  VOID",True,C["cyan"]); ts.set_alpha(alpha_t)
+            ts=self.fonts["big"].render("BATTLE FORGE",True,C["cyan"]); ts.set_alpha(alpha_t)
             surf.blit(ts,(SCREEN_W//2-ts.get_width()//2,SCREEN_H//2-120))
             la=int(clamp((t-0.2)*5,0,1)*180)
             ls=pygame.Surface((500,2),pygame.SRCALPHA); ls.fill((*C["cyan"],la)); surf.blit(ls,(SCREEN_W//2-250,SCREEN_H//2-82))
@@ -873,7 +965,7 @@ class IntroSequence:
             surf.blit(sub,(SCREEN_W//2-sub.get_width()//2,SCREEN_H//2+40))
         if t>0.52:
             la=int(clamp((t-0.52)*6,0,1)*200)
-            for i,line in enumerate(["Year 2147. The city never ends.","The AI defence grid has flagged you as a threat.","Run. Shoot. Survive."]):
+            for i,line in enumerate(["Year 2147. The city never ends"]):
                 lt=self.fonts["small"].render(line,True,C["white"]); lt.set_alpha(la)
                 surf.blit(lt,(SCREEN_W//2-lt.get_width()//2,SCREEN_H//2+150+i*44))
         sa2=int(abs(math.sin(self.tick*0.08))*180)
@@ -883,7 +975,7 @@ class IntroSequence:
             fade=int(clamp((t-0.88)/0.12,0,1)*255)
             fo=pygame.Surface((SCREEN_W,SCREEN_H)); fo.fill((0,0,0)); fo.set_alpha(fade); surf.blit(fo,(0,0))
 
-# ── HUD ────────────────────────────────────────────────────────────────────────
+#HUD
 def draw_hud(surf,fonts,player,score,difficulty,biome_name,tick):
     neon_text(surf,fonts["med"],f"{score:,}",C["yellow"],(SCREEN_W//2,30))
     neon_text(surf,fonts["small"],f"\u00d7{difficulty:.1f}  {biome_name}",C["pink"],(SCREEN_W//2,58))
@@ -894,7 +986,7 @@ def draw_hud(surf,fonts,player,score,difficulty,biome_name,tick):
         if i<player.jumps_left: draw_glow(surf,col,(20+i*20,50),10,80)
     player.draw_powerup_bar(surf,fonts)
 
-# ── Screens ────────────────────────────────────────────────────────────────────
+#Screens
 class Screen:
     def handle(self,event): pass
     def update(self): pass
@@ -917,13 +1009,12 @@ class LoginScreen(Screen):
             pygame.draw.line(surf,C["cyan"],(x,y),(x+fx*50,y),2)
             pygame.draw.line(surf,C["cyan"],(x,y),(x,y+fy*50),2)
         pulse=0.5+0.5*math.sin(self.tick*0.05); glow_col=lerp_color(C["cyan"],C["pink"],pulse)
-        neon_text(surf,self.fonts["big"],"NEON VOID",C["cyan"],(SCREEN_W//2,140))
-        draw_glow(surf,glow_col,(SCREEN_W//2,140),50,int(30*pulse))
+        neon_text(surf,self.fonts["big"],"BATTLE FORGE",C["cyan"],(SCREEN_W//2,140))
+        pass
         lw=int(300+math.sin(self.tick*0.04)*80)
         ls=pygame.Surface((lw,2),pygame.SRCALPHA); ls.fill((*C["cyan"],160)); surf.blit(ls,(SCREEN_W//2-lw//2,190))
         ls2=pygame.Surface((lw//2,1),pygame.SRCALPHA); ls2.fill((*C["pink"],120)); surf.blit(ls2,(SCREEN_W//2-lw//4,194))
         neon_text(surf,self.fonts["med"],"Cyberpunk Arcade Survivor",C["pink"],(SCREEN_W//2,230))
-        neon_text(surf,self.fonts["small"],"Enter your name to begin",C["white"],(SCREEN_W//2,340))
         self.input.draw(surf,self.fonts["small"]); self.btn.draw(surf,self.fonts["small"])
 
 class MenuScreen(Screen):
@@ -942,17 +1033,37 @@ class MenuScreen(Screen):
     def update(self): self.tick+=1; mpos=pygame.mouse.get_pos(); [b.check(mpos) for b in self.buttons]
     def draw(self,surf):
         surf.fill(C["bg"]); _draw_city_bg(surf,self.tick); _draw_scanlines(surf); _draw_grid(surf,self.tick)
+
+        # Corner brackets
         for (x,y,fx,fy) in [(30,30,1,1),(SCREEN_W-30,30,-1,1),(30,SCREEN_H-30,1,-1),(SCREEN_W-30,SCREEN_H-30,-1,-1)]:
             pygame.draw.line(surf,C["cyan"],(x,y),(x+fx*50,y),2)
             pygame.draw.line(surf,C["cyan"],(x,y),(x,y+fy*50),2)
-        pygame.draw.line(surf,C["cyan"],(SCREEN_W//2-200,240),(SCREEN_W//2+200,240),1)
-        pygame.draw.line(surf,C["cyan"],(SCREEN_W//2-200,608),(SCREEN_W//2+200,608),1)
+
+        # Animated title pulse
         pulse=0.5+0.5*math.sin(self.tick*0.05)
-        neon_text(surf,self.fonts["big"],"NEON VOID",C["cyan"],(SCREEN_W//2,140))
-        draw_glow(surf,C["cyan"],(SCREEN_W//2,140),45,int(28*pulse))
-        neon_text(surf,self.fonts["small"],f"OPERATOR: {self.username}",C["green"],(SCREEN_W//2,198))
+        neon_text(surf,self.fonts["big"],"BATTLE FORGE",C["cyan"],(SCREEN_W//2,110))
+
+        # Animated separator lines under title
+        lw=int(400+math.sin(self.tick*0.04)*60)
+        ls=pygame.Surface((lw,2),pygame.SRCALPHA); ls.fill((*C["cyan"],140))
+        surf.blit(ls,(SCREEN_W//2-lw//2,158))
+        ls2=pygame.Surface((lw//2,1),pygame.SRCALPHA); ls2.fill((*C["pink"],100))
+        surf.blit(ls2,(SCREEN_W//2-lw//4,162))
+
+        
+        panel_w=380; panel_x=SCREEN_W//2-panel_w//2
+        pygame.draw.rect(surf,(10,10,30),(panel_x,168,panel_w,72),border_radius=8)
+        draw_neon_rect(surf,C["green"],(panel_x,168,panel_w,72),glow_r=6)
+        neon_text(surf,self.fonts["small"],f"OPERATOR:  {self.username}",C["green"],(SCREEN_W//2,185))
         bests=[e["score"] for e in self.scores if e["username"]==self.username]
-        if bests: neon_text(surf,self.fonts["small"],f"PERSONAL BEST: {max(bests):,}",C["yellow"],(SCREEN_W//2,222))
+        best_txt=f"BEST SCORE:  {max(bests):,}" if bests else "BEST SCORE:  ---"
+        neon_text(surf,self.fonts["small"],best_txt,C["yellow"],(SCREEN_W//2,215))
+        # Decorative side lines beside buttons
+        pygame.draw.line(surf,C["purple"],(SCREEN_W//2-200,246),(SCREEN_W//2-200,590),1)
+        pygame.draw.line(surf,C["purple"],(SCREEN_W//2+200,246),(SCREEN_W//2+200,590),1)
+        pygame.draw.line(surf,C["cyan"],(SCREEN_W//2-200,246),(SCREEN_W//2+200,246),1)
+        pygame.draw.line(surf,C["cyan"],(SCREEN_W//2-200,590),(SCREEN_W//2+200,590),1)
+
         for b in self.buttons: b.draw(surf,self.fonts["small"])
 
 class LeaderboardScreen(Screen):
@@ -1021,7 +1132,7 @@ class GameOverScreen(Screen):
             neon_text(surf,self.fonts["small"],"\u2605  NEW HIGH SCORE  \u2605",C["yellow"],(SCREEN_W//2,SCREEN_H//2+20))
         for b in self.buttons: b.draw(surf,self.fonts["small"])
 
-# ── Game Session ───────────────────────────────────────────────────────────────
+#Game Session
 class GameSession:
     def __init__(self,username,scores):
         self.username=username; self.scores=scores
@@ -1197,9 +1308,9 @@ class GameSession:
         if self.paused and self.pause_screen: self.pause_screen.draw(surf)
         if self.over and self.over_screen: self.over_screen.draw(surf)
 
-# ── Main ───────────────────────────────────────────────────────────────────────
+#Main
 def main():
-    pygame.init(); pygame.display.set_caption("NEON VOID")
+    pygame.init(); pygame.display.set_caption("BATTLE FORGE")
     screen=pygame.display.set_mode((SCREEN_W,SCREEN_H)); clock=pygame.time.Clock()
 
     def make_fonts():
